@@ -9,7 +9,7 @@ Each guide breaks a topic down into the core concepts, the exact syntax, what th
 | Topic | Description | Link |
 |---|---|---|
 | Power Query | Cleaning messy job postings & applications data — profiling, standardizing categories, parsing dates and salaries | [View guide](https://beenibeeni.github.io/data-analytics-notes/PowerQuery_Cleaning_Guide.html) |
-| SQL | SELECT/WHERE basics through joins, subqueries, CTEs, and window functions | [View guide](https://beenibeeni.github.io/data-analytics-notes/SQL_Basics_Guide.html) |
+| SQL | SELECT/WHERE basics through joins, subqueries, CTEs, and window functions | [View guide](https://beenibeeni.github.io/data-analytics-playbook/sql-basics-guide.html) |
 
 *(More guides — DAX, data modeling, Python for analytics — will be added here as I work through them.)*
 
