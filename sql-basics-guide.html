@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Basics &amp; Query Guide</title>
+<style>
+  :root{
+    --bg:#f7f8fa;
+    --panel:#ffffff;
+    --ink:#0f172a;
+    --muted:#5b6577;
+    --line:#e3e6ec;
+    --navy:#0c1424;
+    --navy-soft:#16213a;
+    --teal:#0e9b8a;
+    --teal-deep:#0a7568;
+    --amber:#d9822b;
+    --code-bg:#0f172a;
+    --code-text:#cfe8e4;
+    --code-key:#5ee6c8;
+    --code-str:#f0b86e;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.55;
+  }
+  code,pre,.mono{font-family:'JetBrains Mono','Fira Code',Consolas,monospace;}
+
+  /* ===== layout ===== */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:270px;flex-shrink:0;
+    background:var(--navy);
+    color:#cfd6e4;
+    padding:28px 0 60px;
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .sidebar::-webkit-scrollbar{width:6px;}
+  .sidebar::-webkit-scrollbar-thumb{background:#2a3858;border-radius:4px;}
+  .brand{padding:0 24px 22px;border-bottom:1px solid #233152;margin-bottom:16px;}
+  .brand .tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;}
+  .brand h1{font-size:18px;margin:6px 0 2px;color:#fff;font-weight:700;}
+  .brand .sub{font-size:12px;color:#7e8aa6;}
+
+  .nav-group{margin-bottom:6px;}
+  .nav-group-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+    color:#5d6c8f;padding:14px 24px 6px;font-weight:600;
+  }
+  .nav-link{
+    display:block;padding:7px 24px 7px 24px;
+    font-size:13.5px;color:#aab4cc;text-decoration:none;
+    border-left:3px solid transparent;
+  }
+  .nav-link:hover{background:#15203a;color:#fff;}
+  .nav-link.active{background:#15203a;color:#fff;border-left-color:var(--teal);}
+
+  .content{flex:1;min-width:0;padding:0;}
+  .topbar{
+    background:var(--panel);border-bottom:1px solid var(--line);
+    padding:14px 44px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:5;
+  }
+  .crumb{font-size:12.5px;color:var(--muted);}
+  .crumb b{color:var(--ink);}
+  .pill{
+    font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    background:rgba(14,155,138,.1);color:var(--teal-deep);padding:4px 10px;border-radius:999px;
+  }
+
+  .page{max-width:880px;margin:0 auto;padding:48px 44px 100px;}
+
+  /* hero */
+  .hero{padding:64px 44px 40px;max-width:980px;margin:0 auto;}
+  .hero .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep);
+    font-weight:700;margin-bottom:14px;
+  }
+  .hero h1{font-size:40px;margin:0 0 14px;letter-spacing:-.01em;}
+  .hero p.lead{font-size:16.5px;color:var(--muted);max-width:640px;margin:0 0 28px;}
+  .terminal{
+    background:var(--code-bg);border-radius:var(--radius);padding:22px 26px;
+    color:var(--code-text);box-shadow:0 18px 40px -18px rgba(15,23,42,.55);
+    max-width:640px;
+  }
+  .terminal .dots{display:flex;gap:6px;margin-bottom:14px;}
+  .terminal .dots span{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .terminal .dots span:nth-child(1){background:#ef6f6f;}
+  .terminal .dots span:nth-child(2){background:#eab64d;}
+  .terminal .dots span:nth-child(3){background:#54c98a;}
+  .terminal pre{margin:0;font-size:13.5px;white-space:pre-wrap;}
+  .terminal .kw{color:var(--code-key);font-weight:600;}
+  .terminal .str{color:var(--code-str);}
+  .terminal .cmt{color:#7c8aa6;}
+
+  .stat-row{display:flex;gap:28px;margin-top:30px;flex-wrap:wrap;}
+  .stat{min-width:120px;}
+  .stat .num{font-size:24px;font-weight:700;color:var(--ink);}
+  .stat .lab{font-size:12px;color:var(--muted);}
+
+  /* section header */
+  .section-head{margin-bottom:30px;}
+  .section-head .eyebrow{
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-deep);
+    font-weight:700;margin-bottom:8px;display:block;
+  }
+  .section-head h2{font-size:28px;margin:0 0 10px;}
+  .section-head .desc{color:var(--muted);font-size:15px;max-width:680px;}
+
+  /* step card */
+  .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    margin-bottom:18px;overflow:hidden;
+  }
+  .step-head{
+    display:flex;align-items:center;gap:14px;padding:18px 22px;cursor:pointer;
+    user-select:none;
+  }
+  .step-num{
+    width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;
+  }
+  .step-title{flex:1;font-weight:600;font-size:15.5px;}
+  .step-meta{font-size:11.5px;color:var(--muted);background:#f1f3f7;padding:3px 9px;border-radius:6px;white-space:nowrap;}
+  .chev{color:var(--muted);transition:transform .2s ease;font-size:13px;}
+  .step.open .chev{transform:rotate(180deg);}
+  .step-body{display:none;padding:0 22px 22px 66px;}
+  .step.open .step-body{display:block;}
+  .step-body p{margin:0 0 12px;font-size:14.5px;color:#33394a;}
+  .step-body ol,.step-body ul{margin:0 0 14px;padding-left:20px;font-size:14.5px;color:#33394a;}
+  .step-body li{margin-bottom:6px;}
+
+  .path-btn{
+    display:inline-block;font-size:12px;color:var(--teal-deep);background:#eafaf6;
+    border:1px solid #c8eee5;padding:4px 10px;border-radius:6px;margin-bottom:14px;font-weight:600;
+  }
+
+  /* code block */
+  .codeblock{
+    background:var(--code-bg);border-radius:8px;padding:16px 18px;margin:12px 0 16px;
+    position:relative;overflow-x:auto;
+  }
+  .codeblock pre{margin:0;color:var(--code-text);font-size:13px;line-height:1.6;white-space:pre;}
+  .codeblock .copy{
+    position:absolute;top:10px;right:12px;font-size:11px;color:#9fb0c8;
+    background:#1c2740;border:1px solid #2a3858;padding:3px 9px;border-radius:5px;cursor:pointer;
+  }
+  .codeblock .copy:hover{color:#fff;border-color:var(--teal);}
+  .hlkw{color:var(--code-key);font-weight:600;}
+  .hlstr{color:var(--code-str);}
+  .hlcmt{color:#7c8aa6;}
+
+  table.tbl{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:14px;}
+  table.tbl th{
+    text-align:left;background:#f1f3f7;padding:9px 12px;font-size:12.5px;
+    text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:1px solid var(--line);
+  }
+  table.tbl td{padding:9px 12px;border-bottom:1px solid var(--line);color:#33394a;}
+  table.tbl tr:last-child td{border-bottom:none;}
+
+  .callout{
+    border-radius:8px;padding:13px 16px;margin:14px 0;font-size:14px;display:flex;gap:10px;
+  }
+  .callout .ic{flex-shrink:0;font-size:15px;}
+  .callout.tip{background:#eafaf6;color:#0a5c50;border:1px solid #c8eee5;}
+  .callout.warn{background:#fff4e8;color:#8a4d10;border:1px solid #f4dcb8;}
+  .callout.note{background:#eef2ff;color:#33408a;border:1px solid #d7ddf8;}
+
+  .result-box{
+    border:1px dashed var(--line);border-radius:8px;padding:12px 16px;margin:12px 0;
+    font-size:13.5px;background:#fafbfc;
+  }
+  .result-box .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+
+  .nav-foot{display:flex;justify-content:space-between;align-items:center;margin-top:30px;padding-top:18px;border-top:1px solid var(--line);}
+  .nav-foot a{color:var(--teal-deep);text-decoration:none;font-size:14px;font-weight:600;}
+  .nav-foot a:hover{text-decoration:underline;}
+
+  .checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:760px){.checklist-grid{grid-template-columns:1fr;}}
+
+  .finish-banner{
+    background:linear-gradient(135deg,var(--navy),var(--navy-soft));color:#fff;border-radius:var(--radius);
+    padding:26px 28px;margin-top:10px;
+  }
+  .finish-banner h3{margin:0 0 8px;font-size:18px;}
+  .finish-banner p{margin:0;color:#b9c3da;font-size:14px;}
+
+  @media (max-width:880px){
+    .sidebar{display:none;}
+    .page,.hero{padding-left:24px;padding-right:24px;}
+    .step-body{padding-left:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="tag">SQL · Module</div>
+      <h1>SQL Basics &amp; Query Guide</h1>
+      <div class="sub">PH Job Market Analytics · Companion notes</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Orientation</div>
+      <a class="nav-link" href="#hero">Why learn SQL for BI</a>
+      <a class="nav-link" href="#setup">Setting up a practice environment</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">1 · Querying basics</div>
+      <a class="nav-link" href="#select">SELECT &amp; column basics</a>
+      <a class="nav-link" href="#where">Filtering with WHERE</a>
+      <a class="nav-link" href="#order">Sorting &amp; limiting results</a>
+      <a class="nav-link" href="#null">Handling NULLs</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">2 · Aggregating</div>
+      <a class="nav-link" href="#agg">Aggregate functions</a>
+      <a class="nav-link" href="#groupby">GROUP BY</a>
+      <a class="nav-link" href="#having">Filtering groups with HAVING</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">3 · Combining tables</div>
+      <a class="nav-link" href="#joins-intro">Why joins exist</a>
+      <a class="nav-link" href="#inner">INNER JOIN</a>
+      <a class="nav-link" href="#left">LEFT JOIN</a>
+      <a class="nav-link" href="#multi">Joining 3+ tables</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">4 · Going further</div>
+      <a class="nav-link" href="#subquery">Subqueries</a>
+      <a class="nav-link" href="#cte">CTEs (WITH)</a>
+      <a class="nav-link" href="#window">Window functions</a>
+      <a class="nav-link" href="#case">CASE WHEN logic</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">5 · Review</div>
+      <a class="nav-link" href="#order-ops">Query execution order</a>
+      <a class="nav-link" href="#mistakes">Common beginner mistakes</a>
+      <a class="nav-link" href="#cheatsheet">Cheat sheet</a>
+      <a class="nav-link" href="#checklist">Self-check checklist</a>
+    </div>
+  </nav>
+
+  <!-- ===================== CONTENT ===================== -->
+  <div class="content">
+
+    <div class="topbar">
+      <div class="crumb">SQL Module &nbsp;/&nbsp; <b>Basics &amp; Query Guide</b></div>
+      <div class="pill">Reference · Tutorial</div>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="eyebrow">SQL · Module 1</div>
+      <h1>SQL Basics for Data Analysis</h1>
+      <p class="lead">A working reference built the same way the Power Query cleaning guide was: short concept explanations, the exact syntax, what the output looks like, and the mistake to watch for — written for going from "I can read SQL" to "I can write a clean query from scratch."</p>
+
+      <div class="terminal">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <pre><span class="cmt">-- find the median salary by work setup</span>
+<span class="kw">SELECT</span>
+    work_setup,
+    <span class="kw">COUNT</span>(*) <span class="kw">AS</span> job_count,
+    <span class="kw">AVG</span>(salary_midpoint) <span class="kw">AS</span> avg_salary
+<span class="kw">FROM</span> job_postings
+<span class="kw">WHERE</span> salary_midpoint <span class="kw">IS NOT NULL</span>
+<span class="kw">GROUP BY</span> work_setup
+<span class="kw">ORDER BY</span> avg_salary <span class="kw">DESC</span>;</pre>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="num">15</div><div class="lab">Topics covered</div></div>
+        <div class="stat"><div class="num">5</div><div class="lab">Modules</div></div>
+        <div class="stat"><div class="num">30+</div><div class="lab">Runnable query examples</div></div>
+      </div>
+    </section>
+
+    <div class="page" id="setup">
+      <div class="section-head">
+        <span class="eyebrow">Orientation</span>
+        <h2>Setting up a practice environment</h2>
+        <p class="desc">Pick whichever is least friction for you — the syntax in this guide is standard SQL and works in all of them with very minor differences (noted where it matters).</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Where to actually run these queries</div>
+          <div class="step-meta">5 min</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>Option</th><th>Good for</th><th>Setup</th></tr>
+            <tr><td>SQLite + DB Browser</td><td>Zero install hassle, single file</td><td>Download DB Browser for SQLite, open/create a .db file</td></tr>
+            <tr><td>PostgreSQL + pgAdmin</td><td>Closest to most real BI/data jobs</td><td>Install Postgres locally or use a free Supabase project</td></tr>
+            <tr><td>Power BI's own Power Query</td><td>Practicing on your existing portfolio data</td><td>Use "SQL Server database" connector, or just reason through the logic — most concepts map 1:1 to Power Query steps</td></tr>
+            <tr><td>SQLFiddle / DB Fiddle (browser)</td><td>Quick syntax tests, no install at all</td><td>sqlfiddle.com or dbfiddle.uk</td></tr>
+          </table>
+          <div class="callout tip"><div class="ic">💡</div><div>For this guide's examples, assume two tables from the job market project: <code>job_postings</code> (job_id, job_title, company, location, work_setup, employment_type, posted_date, salary_min, salary_max, salary_midpoint) and <code>applications</code> (application_id, job_id, gender, education, age, age_band, date_applied, interview_score).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== MODULE 1 ===================== -->
+    <div class="page" id="select">
+      <div class="section-head">
+        <span class="eyebrow">Module 1 · Querying basics</span>
+        <h2>SELECT and column basics</h2>
+        <p class="desc">Every SQL query starts the same way: say what columns you want, and where to get them from.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">The SELECT … FROM skeleton</div>
+          <div class="step-meta">Core syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>Read this out loud as "give me these columns, from this table" — that's literally what it does.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> job_title, company, work_setup
+<span class="hlkw">FROM</span> job_postings;</pre>
+          </div>
+          <ol>
+            <li>List the exact column names after <code>SELECT</code>, separated by commas.</li>
+            <li>Name the table after <code>FROM</code>.</li>
+            <li>End the statement with a semicolon — some tools don't require it, but get the habit early.</li>
+          </ol>
+          <div class="callout note"><div class="ic">📝</div><div>SQL keywords (<code>SELECT</code>, <code>FROM</code>) are not case-sensitive, but writing them in CAPS while keeping column/table names lowercase is the universal convention — it makes long queries scannable at a glance.</div></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">2</div>
+          <div class="step-title">Selecting everything, renaming columns, removing duplicates</div>
+          <div class="step-meta">3 variations</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> *
+<span class="hlkw">FROM</span> job_postings;          <span class="hlcmt">-- every column, every row</span>
+
+<span class="hlkw">SELECT</span> job_title <span class="hlkw">AS</span> title,
+       work_setup <span class="hlkw">AS</span> setup
+<span class="hlkw">FROM</span> job_postings;          <span class="hlcmt">-- AS renames a column in the output</span>
+
+<span class="hlkw">SELECT DISTINCT</span> work_setup
+<span class="hlkw">FROM</span> job_postings;          <span class="hlcmt">-- unique values only</span></pre>
+          </div>
+          <div class="result-box"><div class="label">DISTINCT work_setup → output</div>Remote · Hybrid · Onsite</div>
+          <div class="callout warn"><div class="ic">⚠️</div><div><code>SELECT *</code> is fine for exploring a table you don't know yet, but avoid it in any query you'll reuse or build a report on — it silently breaks if someone adds a column later, and it's slower on large tables.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><span></span><a href="#where">Next: Filtering with WHERE →</a></div>
+    </div>
+
+    <div class="page" id="where">
+      <div class="section-head">
+        <span class="eyebrow">Module 1 · Querying basics</span>
+        <h2>Filtering rows with WHERE</h2>
+        <p class="desc">WHERE is how you go from "all the rows" to "only the rows I actually need."</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Comparison &amp; logical operators</div>
+          <div class="step-meta">Core syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>Operator</th><th>Meaning</th></tr>
+            <tr><td><code>=</code> <code>&lt;&gt;</code> / <code>!=</code></td><td>equal to / not equal to</td></tr>
+            <tr><td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code></td><td>greater/less than (works on numbers and dates)</td></tr>
+            <tr><td><code>AND</code> / <code>OR</code></td><td>combine multiple conditions</td></tr>
+            <tr><td><code>BETWEEN a AND b</code></td><td>inclusive range</td></tr>
+            <tr><td><code>IN (a, b, c)</code></td><td>matches any value in a list</td></tr>
+            <tr><td><code>LIKE</code></td><td>pattern match on text, using <code>%</code> as a wildcard</td></tr>
+          </table>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> job_title, salary_midpoint
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> work_setup = <span class="hlstr">'Remote'</span>
+  <span class="hlkw">AND</span> salary_midpoint &gt;= 50000;
+
+<span class="hlkw">SELECT</span> job_title
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> job_title <span class="hlkw">LIKE</span> <span class="hlstr">'%Analyst%'</span>;   <span class="hlcmt">-- title contains "Analyst" anywhere</span></pre>
+          </div>
+          <div class="callout tip"><div class="ic">💡</div><div>Always wrap text values in single quotes (<code>'Remote'</code>), never double quotes. Double quotes in most SQL dialects refer to a column or table name, not a literal value — a very common beginner error message.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#select">← Back</a><a href="#order">Next: Sorting &amp; limiting →</a></div>
+    </div>
+
+    <div class="page" id="order">
+      <div class="section-head">
+        <span class="eyebrow">Module 1 · Querying basics</span>
+        <h2>Sorting and limiting results</h2>
+        <p class="desc">ORDER BY controls the sequence rows come back in; LIMIT controls how many you see.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">ORDER BY and LIMIT / TOP</div>
+          <div class="step-meta">Core syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> job_title, salary_midpoint
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">ORDER BY</span> salary_midpoint <span class="hlkw">DESC</span>   <span class="hlcmt">-- highest first; ASC is the default</span>
+<span class="hlkw">LIMIT</span> 5;                        <span class="hlcmt">-- top 5 rows only</span></pre>
+          </div>
+          <div class="callout note"><div class="ic">📝</div><div>SQL Server uses <code>SELECT TOP 5 ...</code> instead of <code>LIMIT 5</code> at the end. PostgreSQL, MySQL, and SQLite all use <code>LIMIT</code>. Same idea, different keyword placement.</div></div>
+          <p>You can sort by more than one column — the second column only breaks ties left by the first.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">ORDER BY</span> work_setup <span class="hlkw">ASC</span>, salary_midpoint <span class="hlkw">DESC</span></pre>
+          </div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#where">← Back</a><a href="#null">Next: Handling NULLs →</a></div>
+    </div>
+
+    <div class="page" id="null">
+      <div class="section-head">
+        <span class="eyebrow">Module 1 · Querying basics</span>
+        <h2>Handling NULLs</h2>
+        <p class="desc">NULL means "no value recorded" — it is not zero, not an empty string, and it breaks ordinary <code>=</code> comparisons. This trips up almost everyone at first.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Why "= NULL" never works</div>
+          <div class="step-meta">Concept</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p><code>WHERE company = NULL</code> always returns zero rows, even on a row where company really is blank — NULL means "unknown," and SQL won't claim two unknowns are equal. You must use the dedicated NULL-checking syntax instead.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> *
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> company <span class="hlkw">IS NULL</span>;       <span class="hlcmt">-- correct way to find blanks</span>
+
+<span class="hlkw">SELECT</span> *
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> company <span class="hlkw">IS NOT NULL</span>;   <span class="hlcmt">-- correct way to exclude blanks</span></pre>
+          </div>
+          <div class="callout warn"><div class="ic">⚠️</div><div>NULLs are also skipped silently by aggregate functions like <code>AVG()</code> — that's usually what you want (NULL salaries shouldn't drag the average down to zero), but always double-check whether "no value" should be treated as zero or genuinely excluded for your specific metric.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#order">← Back</a><a href="#agg">Next: Aggregate functions →</a></div>
+    </div>
+
+    <!-- ===================== MODULE 2 ===================== -->
+    <div class="page" id="agg">
+      <div class="section-head">
+        <span class="eyebrow">Module 2 · Aggregating</span>
+        <h2>Aggregate functions</h2>
+        <p class="desc">These collapse many rows into one summary number — the SQL equivalent of a Power BI card visual.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">COUNT, SUM, AVG, MIN, MAX</div>
+          <div class="step-meta">5 functions</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>Function</th><th>Returns</th></tr>
+            <tr><td><code>COUNT(*)</code></td><td>number of rows, NULLs included</td></tr>
+            <tr><td><code>COUNT(column)</code></td><td>number of non-NULL values in that column</td></tr>
+            <tr><td><code>SUM(column)</code></td><td>total of a numeric column</td></tr>
+            <tr><td><code>AVG(column)</code></td><td>average, ignoring NULLs</td></tr>
+            <tr><td><code>MIN(column)</code> / <code>MAX(column)</code></td><td>smallest / largest value</td></tr>
+          </table>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>
+    <span class="hlkw">COUNT</span>(*) <span class="hlkw">AS</span> total_jobs,
+    <span class="hlkw">AVG</span>(salary_midpoint) <span class="hlkw">AS</span> avg_salary,
+    <span class="hlkw">MAX</span>(salary_midpoint) <span class="hlkw">AS</span> highest_salary
+<span class="hlkw">FROM</span> job_postings;</pre>
+          </div>
+          <div class="result-box"><div class="label">Output (one row)</div>total_jobs: 100 &nbsp;|&nbsp; avg_salary: 84,210 &nbsp;|&nbsp; highest_salary: 250,000</div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#null">← Back</a><a href="#groupby">Next: GROUP BY →</a></div>
+    </div>
+
+    <div class="page" id="groupby">
+      <div class="section-head">
+        <span class="eyebrow">Module 2 · Aggregating</span>
+        <h2>GROUP BY</h2>
+        <p class="desc">GROUP BY is what turns "one big average" into "average per category" — this is the single most useful clause for BI-style reporting.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">The rule that confuses everyone at first</div>
+          <div class="step-meta">Concept + syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>Every column in your <code>SELECT</code> list must be either (a) inside an aggregate function, or (b) listed in <code>GROUP BY</code>. SQL needs to know exactly what to do with every column for every group — there's no "just show me one of them" option.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>
+    work_setup,
+    <span class="hlkw">COUNT</span>(*) <span class="hlkw">AS</span> job_count,
+    <span class="hlkw">AVG</span>(salary_midpoint) <span class="hlkw">AS</span> avg_salary
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">GROUP BY</span> work_setup
+<span class="hlkw">ORDER BY</span> job_count <span class="hlkw">DESC</span>;</pre>
+          </div>
+          <div class="result-box">
+            <div class="label">Output</div>
+            <table class="tbl">
+              <tr><th>work_setup</th><th>job_count</th><th>avg_salary</th></tr>
+              <tr><td>Remote</td><td>54</td><td>89,400</td></tr>
+              <tr><td>Hybrid</td><td>30</td><td>81,200</td></tr>
+              <tr><td>Onsite</td><td>16</td><td>76,900</td></tr>
+            </table>
+          </div>
+          <div class="callout tip"><div class="ic">💡</div><div>Mental model: GROUP BY first splits the table into mini-tables, one per distinct value — then runs your aggregate functions separately on each mini-table, and stitches the one-row results back together.</div></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">2</div>
+          <div class="step-title">Grouping by more than one column</div>
+          <div class="step-meta">1 example</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>List multiple columns to create a group per unique combination — for example, work setup crossed with employment type.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> work_setup, employment_type, <span class="hlkw">COUNT</span>(*) <span class="hlkw">AS</span> job_count
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">GROUP BY</span> work_setup, employment_type;</pre>
+          </div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#agg">← Back</a><a href="#having">Next: HAVING →</a></div>
+    </div>
+
+    <div class="page" id="having">
+      <div class="section-head">
+        <span class="eyebrow">Module 2 · Aggregating</span>
+        <h2>Filtering groups with HAVING</h2>
+        <p class="desc">WHERE filters individual rows before grouping; HAVING filters the groups after they've been built. Mixing these up is the #1 GROUP BY error.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">WHERE vs HAVING, side by side</div>
+          <div class="step-meta">Core syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> work_setup, <span class="hlkw">COUNT</span>(*) <span class="hlkw">AS</span> job_count
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> salary_midpoint <span class="hlkw">IS NOT NULL</span>   <span class="hlcmt">-- filters rows, runs BEFORE grouping</span>
+<span class="hlkw">GROUP BY</span> work_setup
+<span class="hlkw">HAVING</span> <span class="hlkw">COUNT</span>(*) &gt; 10;             <span class="hlcmt">-- filters groups, runs AFTER grouping</span></pre>
+          </div>
+          <table class="tbl">
+            <tr><th></th><th>WHERE</th><th>HAVING</th></tr>
+            <tr><td>Filters</td><td>individual rows</td><td>aggregated groups</td></tr>
+            <tr><td>Runs</td><td>before GROUP BY</td><td>after GROUP BY</td></tr>
+            <tr><td>Can reference an aggregate like COUNT(*)?</td><td>No</td><td>Yes</td></tr>
+          </table>
+          <div class="callout warn"><div class="ic">⚠️</div><div>Writing <code>WHERE COUNT(*) &gt; 10</code> will throw an error in most databases — at the point WHERE runs, the rows haven't been grouped yet, so there's no count to check.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#groupby">← Back</a><a href="#joins-intro">Next: Why joins exist →</a></div>
+    </div>
+
+    <!-- ===================== MODULE 3 ===================== -->
+    <div class="page" id="joins-intro">
+      <div class="section-head">
+        <span class="eyebrow">Module 3 · Combining tables</span>
+        <h2>Why joins exist</h2>
+        <p class="desc">Real databases split data across multiple tables on purpose — one row per job posting in one table, one row per application in another. A join is how you bring related rows back together for a query.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">The shared key that makes a join possible</div>
+          <div class="step-meta">Concept</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>A join works because both tables share a common column — usually an ID. In this project, <code>job_postings.job_id</code> and <code>applications.job_id</code> are the same value, so SQL can line up matching rows from each table.</p>
+          <div class="callout note"><div class="ic">📝</div><div>This is exactly the relationship you'd draw as a line between two tables in Power BI's Model view — a join in SQL and a relationship in Power BI are the same underlying concept, just expressed differently.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#having">← Back</a><a href="#inner">Next: INNER JOIN →</a></div>
+    </div>
+
+    <div class="page" id="inner">
+      <div class="section-head">
+        <span class="eyebrow">Module 3 · Combining tables</span>
+        <h2>INNER JOIN</h2>
+        <p class="desc">Returns only the rows that have a match in both tables. This is the join you reach for by default.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Syntax and what gets dropped</div>
+          <div class="step-meta">Core syntax</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>
+    jp.job_title,
+    jp.work_setup,
+    a.gender,
+    a.interview_score
+<span class="hlkw">FROM</span> job_postings <span class="hlkw">AS</span> jp
+<span class="hlkw">INNER JOIN</span> applications <span class="hlkw">AS</span> a
+    <span class="hlkw">ON</span> jp.job_id = a.job_id;</pre>
+          </div>
+          <ol>
+            <li>Alias each table (<code>jp</code>, <code>a</code>) so you can prefix columns and avoid ambiguity — required once two tables have a same-named column like <code>job_id</code>.</li>
+            <li><code>ON</code> defines the matching condition — almost always an ID = ID comparison.</li>
+            <li>Any job posting with zero applications, and any application with a job_id that doesn't exist in job_postings, is silently excluded from the result.</li>
+          </ol>
+          <div class="callout warn"><div class="ic">⚠️</div><div>If your row count after a join looks lower than expected, this dropping behavior is almost always why. Before joining, it's worth knowing roughly how many rows should have a match on each side.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#joins-intro">← Back</a><a href="#left">Next: LEFT JOIN →</a></div>
+    </div>
+
+    <div class="page" id="left">
+      <div class="section-head">
+        <span class="eyebrow">Module 3 · Combining tables</span>
+        <h2>LEFT JOIN</h2>
+        <p class="desc">Keeps every row from the left (first) table, whether or not it has a match — filling in NULLs where there's nothing to match. Use this when "no match" is itself meaningful information.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Finding job postings with zero applications</div>
+          <div class="step-meta">Real use case</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>This is the classic LEFT JOIN use case: keep every job posting, attach applications where they exist, then filter for the ones where nothing attached.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> jp.job_id, jp.job_title
+<span class="hlkw">FROM</span> job_postings <span class="hlkw">AS</span> jp
+<span class="hlkw">LEFT JOIN</span> applications <span class="hlkw">AS</span> a
+    <span class="hlkw">ON</span> jp.job_id = a.job_id
+<span class="hlkw">WHERE</span> a.application_id <span class="hlkw">IS NULL</span>;   <span class="hlcmt">-- no matching application row</span></pre>
+          </div>
+          <div class="callout tip"><div class="ic">💡</div><div>Picture it as: keep the whole left table intact, and just bolt on whatever fits from the right table — empty seats become NULL instead of disappearing. INNER JOIN would have silently dropped every one of these postings.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#inner">← Back</a><a href="#multi">Next: Joining 3+ tables →</a></div>
+    </div>
+
+    <div class="page" id="multi">
+      <div class="section-head">
+        <span class="eyebrow">Module 3 · Combining tables</span>
+        <h2>Joining three or more tables</h2>
+        <p class="desc">You can chain joins — each new JOIN clause just adds another table to whatever you've already built.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Chaining joins, e.g. with a dim_skills table</div>
+          <div class="step-meta">Pattern</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> jp.job_title, a.gender, s.skill_name
+<span class="hlkw">FROM</span> job_postings <span class="hlkw">AS</span> jp
+<span class="hlkw">INNER JOIN</span> applications <span class="hlkw">AS</span> a  <span class="hlkw">ON</span> jp.job_id = a.job_id
+<span class="hlkw">LEFT JOIN</span>  job_skills  <span class="hlkw">AS</span> js <span class="hlkw">ON</span> jp.job_id = js.job_id
+<span class="hlkw">LEFT JOIN</span>  dim_skills  <span class="hlkw">AS</span> s  <span class="hlkw">ON</span> js.skill_id = s.skill_id;</pre>
+          </div>
+          <div class="callout note"><div class="ic">📝</div><div>This mirrors the star schema you'd build in Power BI's Model view — a fact table (job_postings) joined out to bridge and dimension tables (job_skills, dim_skills). Each JOIN line is one relationship line in the diagram.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#left">← Back</a><a href="#subquery">Next: Subqueries →</a></div>
+    </div>
+
+    <!-- ===================== MODULE 4 ===================== -->
+    <div class="page" id="subquery">
+      <div class="section-head">
+        <span class="eyebrow">Module 4 · Going further</span>
+        <h2>Subqueries</h2>
+        <p class="desc">A query nested inside another query — useful whenever you need a calculated value before you can filter or compare against it.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Filtering against a value the database has to calculate first</div>
+          <div class="step-meta">Example</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <p>"Show me jobs paying above average" requires knowing the average first — you can't hardcode it, because it changes as data changes. A subquery computes it inline.</p>
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span> job_title, salary_midpoint
+<span class="hlkw">FROM</span> job_postings
+<span class="hlkw">WHERE</span> salary_midpoint &gt; (
+    <span class="hlkw">SELECT</span> <span class="hlkw">AVG</span>(salary_midpoint) <span class="hlkw">FROM</span> job_postings
+);</pre>
+          </div>
+          <div class="callout tip"><div class="ic">💡</div><div>The database runs the inner query first (it returns one number), then plugs that number into the outer query as if you'd typed it in by hand.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#multi">← Back</a><a href="#cte">Next: CTEs →</a></div>
+    </div>
+
+    <div class="page" id="cte">
+      <div class="section-head">
+        <span class="eyebrow">Module 4 · Going further</span>
+        <h2>CTEs — the WITH clause</h2>
+        <p class="desc">A Common Table Expression names a subquery and lets you reference it like a temporary table — the same logic as a subquery, but readable top-to-bottom instead of nested inside-out.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Rewriting the subquery above as a CTE</div>
+          <div class="step-meta">Same logic, cleaner shape</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">WITH</span> avg_salary <span class="hlkw">AS</span> (
+    <span class="hlkw">SELECT</span> <span class="hlkw">AVG</span>(salary_midpoint) <span class="hlkw">AS</span> overall_avg
+    <span class="hlkw">FROM</span> job_postings
+)
+<span class="hlkw">SELECT</span> jp.job_title, jp.salary_midpoint
+<span class="hlkw">FROM</span> job_postings <span class="hlkw">AS</span> jp, avg_salary
+<span class="hlkw">WHERE</span> jp.salary_midpoint &gt; avg_salary.overall_avg;</pre>
+          </div>
+          <div class="callout note"><div class="ic">📝</div><div>CTEs really pay off once you need the same intermediate result more than once in a query, or you're chaining several calculation steps — you can stack multiple <code>WITH ... AS (...)</code> blocks, comma-separated, before the final SELECT.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#subquery">← Back</a><a href="#window">Next: Window functions →</a></div>
+    </div>
+
+    <div class="page" id="window">
+      <div class="section-head">
+        <span class="eyebrow">Module 4 · Going further</span>
+        <h2>Window functions</h2>
+        <p class="desc">These calculate something across a set of rows — a rank, a running total, a comparison to the group average — without collapsing the rows the way GROUP BY does. You keep every row and get an extra calculated column.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">RANK() within a group, using OVER (PARTITION BY ...)</div>
+          <div class="step-meta">The pattern to memorize</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>
+    job_title,
+    work_setup,
+    salary_midpoint,
+    <span class="hlkw">RANK</span>() <span class="hlkw">OVER</span> (
+        <span class="hlkw">PARTITION BY</span> work_setup
+        <span class="hlkw">ORDER BY</span> salary_midpoint <span class="hlkw">DESC</span>
+    ) <span class="hlkw">AS</span> rank_in_setup
+<span class="hlkw">FROM</span> job_postings;</pre>
+          </div>
+          <div class="result-box">
+            <div class="label">Output (rank resets per work_setup group)</div>
+            <table class="tbl">
+              <tr><th>job_title</th><th>work_setup</th><th>salary_midpoint</th><th>rank_in_setup</th></tr>
+              <tr><td>Senior Data Engineer</td><td>Remote</td><td>180,000</td><td>1</td></tr>
+              <tr><td>Data Analyst</td><td>Remote</td><td>62,000</td><td>2</td></tr>
+              <tr><td>AI/ML Engineer</td><td>Hybrid</td><td>150,000</td><td>1</td></tr>
+            </table>
+          </div>
+          <div class="callout tip"><div class="ic">💡</div><div><code>PARTITION BY</code> is "GROUP BY, but don't collapse the rows." It resets the calculation for each group while still showing you every individual row alongside it — exactly what you'd need for a "top 3 highest paying jobs per category" report.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#cte">← Back</a><a href="#case">Next: CASE WHEN →</a></div>
+    </div>
+
+    <div class="page" id="case">
+      <div class="section-head">
+        <span class="eyebrow">Module 4 · Going further</span>
+        <h2>CASE WHEN logic</h2>
+        <p class="desc">SQL's version of an if/else statement — this is exactly the logic behind the age_band custom column from the Power Query guide, written in SQL instead.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Building a bucketed column</div>
+          <div class="step-meta">1 example</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>
+    age,
+    <span class="hlkw">CASE</span>
+        <span class="hlkw">WHEN</span> age <span class="hlkw">IS NULL</span> <span class="hlkw">THEN</span> <span class="hlstr">NULL</span>
+        <span class="hlkw">WHEN</span> age &lt; 25 <span class="hlkw">THEN</span> <span class="hlstr">'Under 25'</span>
+        <span class="hlkw">WHEN</span> age &lt; 35 <span class="hlkw">THEN</span> <span class="hlstr">'25-34'</span>
+        <span class="hlkw">WHEN</span> age &lt; 45 <span class="hlkw">THEN</span> <span class="hlstr">'35-44'</span>
+        <span class="hlkw">ELSE</span> <span class="hlstr">'45+'</span>
+    <span class="hlkw">END</span> <span class="hlkw">AS</span> age_band
+<span class="hlkw">FROM</span> applications;</pre>
+          </div>
+          <div class="callout warn"><div class="ic">⚠️</div><div>CASE checks conditions top to bottom and stops at the first match — so order them from most specific to least specific, the same way you ordered the date-parsing formula's <code>else if</code> chain in Power Query.</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#window">← Back</a><a href="#order-ops">Next: Query execution order →</a></div>
+    </div>
+
+    <!-- ===================== MODULE 5 — REVIEW ===================== -->
+    <div class="page" id="order-ops">
+      <div class="section-head">
+        <span class="eyebrow">Module 5 · Review</span>
+        <h2>Query execution order (not the order you write it in)</h2>
+        <p class="desc">This single fact explains almost every "why doesn't this work" moment in SQL — the order you type clauses is not the order the database actually runs them.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">Written order vs. logical execution order</div>
+          <div class="step-meta">The most important table in this guide</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>You write it as</th><th>The database runs it as</th></tr>
+            <tr><td>1. SELECT</td><td>1. FROM / JOIN</td></tr>
+            <tr><td>2. FROM</td><td>2. WHERE</td></tr>
+            <tr><td>3. JOIN</td><td>3. GROUP BY</td></tr>
+            <tr><td>4. WHERE</td><td>4. HAVING</td></tr>
+            <tr><td>5. GROUP BY</td><td>5. SELECT</td></tr>
+            <tr><td>6. HAVING</td><td>6. ORDER BY</td></tr>
+            <tr><td>7. ORDER BY</td><td>7. LIMIT</td></tr>
+          </table>
+          <div class="callout note"><div class="ic">📝</div><div>This is why <code>WHERE</code> can't reference an aggregate (it runs before grouping happens), why a column alias from <code>SELECT</code> can't be used in <code>WHERE</code> (the alias doesn't exist yet at that stage), and why <code>ORDER BY</code> can reference an alias (by the time it runs, SELECT has already created it).</div></div>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#case">← Back</a><a href="#mistakes">Next: Common mistakes →</a></div>
+    </div>
+
+    <div class="page" id="mistakes">
+      <div class="section-head">
+        <span class="eyebrow">Module 5 · Review</span>
+        <h2>Common beginner mistakes</h2>
+        <p class="desc">A quick gut-check list for when a query errors out or returns something obviously wrong.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">The usual suspects, in order of likelihood</div>
+          <div class="step-meta">Debugging checklist</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>Symptom</th><th>Likely cause</th></tr>
+            <tr><td>"Column must appear in GROUP BY" error</td><td>A non-aggregated column is in SELECT but missing from GROUP BY</td></tr>
+            <tr><td>Row count after a JOIN looks too high</td><td>Joining on a key that isn't actually unique on one side — duplicating rows</td></tr>
+            <tr><td>Row count after a JOIN looks too low</td><td>Used INNER JOIN where some rows have no match — LEFT JOIN is probably what you want</td></tr>
+            <tr><td><code>WHERE x = NULL</code> returns nothing</td><td>Use <code>IS NULL</code>, not <code>= NULL</code></td></tr>
+            <tr><td>"Invalid use of aggregate function" in WHERE</td><td>Aggregates belong in HAVING, not WHERE</td></tr>
+            <tr><td>Text comparison silently fails</td><td>Trailing spaces or inconsistent casing — same root cause as the Power Query Trim step</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#order-ops">← Back</a><a href="#cheatsheet">Next: Cheat sheet →</a></div>
+    </div>
+
+    <div class="page" id="cheatsheet">
+      <div class="section-head">
+        <span class="eyebrow">Module 5 · Review</span>
+        <h2>One-page cheat sheet</h2>
+        <p class="desc">Everything above, compressed to what you'd actually want pinned next to your monitor.</p>
+      </div>
+
+      <div class="step open">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">1</div>
+          <div class="step-title">The full skeleton, in writing order</div>
+          <div class="step-meta">Reference</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="codeblock">
+            <span class="copy" onclick="copyCode(this)">Copy</span>
+            <pre><span class="hlkw">SELECT</span>   columns / aggregates / CASE WHEN
+<span class="hlkw">FROM</span>     table <span class="hlkw">AS</span> alias
+<span class="hlkw">JOIN</span>     other_table <span class="hlkw">AS</span> alias2 <span class="hlkw">ON</span> condition
+<span class="hlkw">WHERE</span>    row-level filter (no aggregates allowed)
+<span class="hlkw">GROUP BY</span> columns not wrapped in an aggregate
+<span class="hlkw">HAVING</span>  group-level filter (aggregates allowed)
+<span class="hlkw">ORDER BY</span> columns or aliases, ASC/DESC
+<span class="hlkw">LIMIT</span>   number of rows to return</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head" onclick="toggleStep(this)">
+          <div class="step-num">2</div>
+          <div class="step-title">Join cheat sheet</div>
+          <div class="step-meta">Reference</div>
+          <div class="chev">▼</div>
+        </div>
+        <div class="step-body">
+          <table class="tbl">
+            <tr><th>Join</th><th>Keeps</th></tr>
+            <tr><td>INNER JOIN</td><td>only rows matched on both sides</td></tr>
+            <tr><td>LEFT JOIN</td><td>all left-table rows, matched or not (NULLs fill the gaps)</td></tr>
+            <tr><td>RIGHT JOIN</td><td>all right-table rows, matched or not</td></tr>
+            <tr><td>FULL JOIN</td><td>every row from both sides, matched or not</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="nav-foot"><a href="#mistakes">← Back</a><a href="#checklist">Next: Self-check →</a></div>
+    </div>
+
+    <div class="page" id="checklist">
+      <div class="section-head">
+        <span class="eyebrow">Module 5 · Review</span>
+        <h2>Self-check before calling it "learned"</h2>
+        <p class="desc">If you can do all of these against your own job market tables without looking anything up, the basics have actually stuck.</p>
+      </div>
+
+      <div class="checklist-grid">
+        <div>
+          <h4 style="margin:0 0 10px;font-size:14px;">Querying &amp; filtering</h4>
+          <table class="tbl">
+            <tr><td>Write a SELECT with a WHERE on text and a WHERE on a number</td></tr>
+            <tr><td>Explain why <code>= NULL</code> doesn't work, unprompted</td></tr>
+            <tr><td>Sort results by two columns, one ascending, one descending</td></tr>
+          </table>
+        </div>
+        <div>
+          <h4 style="margin:0 0 10px;font-size:14px;">Aggregating &amp; joining</h4>
+          <table class="tbl">
+            <tr><td>Get average salary per category with GROUP BY</td></tr>
+            <tr><td>Explain WHERE vs HAVING without re-reading this page</td></tr>
+            <tr><td>Pick INNER vs LEFT JOIN correctly for a given question</td></tr>
+            <tr><td>Write a CASE WHEN that buckets a numeric column</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="finish-banner">
+        <h3>🎉 Module complete.</h3>
+        <p>You now have the same toolkit in SQL that the Power Query guide built in M — filtering, standardizing, joining, and bucketing data. The natural next step is running these queries against your actual <code>job_postings</code> and <code>applications</code> tables and comparing the output to what your Power BI report already shows.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleStep(headEl){
+  const step = headEl.closest('.step');
+  step.classList.toggle('open');
+}
+function copyCode(btn){
+  const pre = btn.parentElement.querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>{btn.textContent = old;}, 1200);
+  });
+}
+// nav click -> explicit scroll (does not rely on default anchor jump)
+const links = document.querySelectorAll('.nav-link');
+links.forEach(link => {
+  link.addEventListener('click', function(e){
+    const id = this.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if(target){
+      e.preventDefault();
+      const topOffset = 70; // account for sticky topbar
+      const y = target.getBoundingClientRect().top + window.pageYOffset - topOffset;
+      window.scrollTo({top: y, behavior: 'smooth'});
+      history.replaceState(null, '', '#'+id);
+    }
+  });
+});
+
+// active nav highlighting via IntersectionObserver (reliable on scroll)
+const sections = Array.from(links).map(l => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const match = document.querySelector('.nav-link[href="#'+entry.target.id+'"]');
+      if(match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
